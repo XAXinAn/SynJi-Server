@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalTime;
 import java.util.List;
 
 @Service
@@ -23,10 +24,15 @@ public class ScheduleService {
     @Transactional
     public Schedule addSchedule(Long userId, Schedule schedule) {
         schedule.setUserId(userId);
-        // 如果是全天日程，时间可以设为 null 或 00:00
-        if (schedule.isAllDay()) {
-            schedule.setTime(null);
+        
+        // 确保非空字段有默认值
+        if (schedule.getTime() == null) {
+            schedule.setTime(LocalTime.of(0, 0, 0));
         }
+        if (schedule.getBelonging() == null || schedule.getBelonging().trim().isEmpty()) {
+            schedule.setBelonging("默认");
+        }
+        
         return scheduleRepository.save(schedule);
     }
 
@@ -38,10 +44,23 @@ public class ScheduleService {
 
         existing.setTitle(updatedSchedule.getTitle());
         existing.setDate(updatedSchedule.getDate());
-        existing.setTime(updatedSchedule.getTime());
+        
+        // 确保非空字段有默认值
+        if (updatedSchedule.getTime() == null) {
+            existing.setTime(LocalTime.of(0, 0, 0));
+        } else {
+            existing.setTime(updatedSchedule.getTime());
+        }
+        
         existing.setAllDay(updatedSchedule.isAllDay());
         existing.setLocation(updatedSchedule.getLocation());
-        existing.setBelonging(updatedSchedule.getBelonging());
+        
+        if (updatedSchedule.getBelonging() == null || updatedSchedule.getBelonging().trim().isEmpty()) {
+            existing.setBelonging("默认");
+        } else {
+            existing.setBelonging(updatedSchedule.getBelonging());
+        }
+
         existing.setImportant(updatedSchedule.isImportant());
         existing.setNotes(updatedSchedule.getNotes());
         

@@ -112,40 +112,54 @@
 {
   "title": "买菜",           // 必填
   "date": "2024-01-24",      // 必填，格式 yyyy-MM-dd
-  "time": "18:00:00",        // 选填，格式 HH:mm:ss
-  "isAllDay": false,         // 选填
+  "time": "18:00:00",        // 必填，格式 HH:mm:ss (若为空，后端默认设为 00:00:00)
+  "isAllDay": false,         // 必填 (若为空，后端默认设为 false)
   "location": "超市",        // 选填
-  "belonging": "生活",       // 选填
-  "important": false,        // 选填，布尔值：是否重要
+  "belonging": "生活",       // 必填 (若为空，后端默认设为 "默认")
+  "important": false,        // 必填 (若为空，后端默认设为 false)
   "notes": "记得带购物袋"      // 选填，长文本备注
 }
 ```
 
 ### 3.3 智能 AI 解析日程 (OCR -> AI)
-该接口接收由客户端本地 OCR 提取的原始文本，通过 LLM 语义解析，返回结构化的日程对象。
+该接口接收由客户端本地 OCR 提取的原始文本，通过 LLM 语义解析，返回结构化的日程对象列表。
 - **路径**: `/api/schedule/ai-parse`
 - **方法**: `POST`
 - **Header**: `Authorization: <Token>`
 - **请求体**:
 ```json
 {
-  "text": "明天下午两点在沃尔玛二楼开会，记得带电脑"
+  "text": "明天下午两点在沃尔玛二楼开会，记得带电脑。另外后天晚上8点有个聚餐。"
 }
 ```
-- **响应数据 (`data`)**: 返回一个标准的结构化 `Schedule` 对象。
+- **响应数据 (`data`)**: 返回一个 `Schedule` 对象数组（即使只有一个日程，也返回数组）。
 ```json
-{
-  "title": "沃尔玛二楼开会",
-  "date": "2024-01-24",
-  "time": "14:00:00",
-  "isAllDay": false,
-  "location": "沃尔玛二楼",
-  "belonging": "工作",
-  "important": false,
-  "notes": "记得带电脑"
-}
+[
+  {
+    "title": "沃尔玛二楼开会",
+    "date": "2024-01-24",
+    "time": "14:00:00",
+    "isAllDay": false,
+    "location": "沃尔玛二楼",
+    "belonging": "工作",
+    "important": false,
+    "notes": "记得带电脑"
+  },
+  {
+    "title": "聚餐",
+    "date": "2024-01-25",
+    "time": "20:00:00",
+    "isAllDay": false,
+    "location": null,
+    "belonging": "生活",
+    "important": false,
+    "notes": null
+  }
+]
 ```
-- **注意**: 如果 AI 解析结果中没有明确时间，`time` 字段将默认返回 `00:00:00`，以避免客户端空指针异常。
+- **注意**: 
+  1. 如果 AI 解析结果中没有明确时间，`time` 字段将默认返回 `00:00:00`，以避免客户端空指针异常。
+  2. 客户端应遍历返回的数组，并为每个日程对象调用 `/api/schedule/add` 接口进行保存，或者在前端提供批量确认界面。
 
 ### 3.4 修改日程
 - **路径**: `/api/schedule/update`

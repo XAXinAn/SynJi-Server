@@ -1,5 +1,6 @@
 package org.example.synjiserver.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.synjiserver.common.ApiResponse;
 import org.example.synjiserver.dto.ScheduleExtractionData;
 import org.example.synjiserver.entity.Schedule;
@@ -22,6 +23,9 @@ public class ScheduleController {
 
     @Autowired
     private ScheduleExtractor scheduleExtractor;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     // 辅助方法：从 Token 中提取 UserId (模拟)
     private Long getUserIdFromToken(String token) {
@@ -71,8 +75,13 @@ public class ScheduleController {
     }
 
     @PostMapping("/ai-parse")
-    public ApiResponse<ScheduleExtractionData> aiParse(@RequestHeader("Authorization") String token, @RequestBody Map<String, String> request) {
+    public ApiResponse<List<ScheduleExtractionData>> aiParse(@RequestHeader("Authorization") String token, @RequestBody Map<String, String> request) {
         String text = request.get("text");
+        
+        // 打印接收到的 OCR 请求数据
+        System.out.println("========== 收到 AI 解析请求 ==========");
+        System.out.println("OCR 原始文本: " + text);
+        
         if (text == null || text.trim().isEmpty()) {
             return ApiResponse.error(400, "文本内容不能为空");
         }
@@ -82,16 +91,32 @@ public class ScheduleController {
             getUserIdFromToken(token);
 
             String currentDate = LocalDate.now().toString();
-            // 调用 AI 提取结构化数据
-            ScheduleExtractionData data = scheduleExtractor.extract(currentDate, text);
+            // 调用 AI 提取结构化数据，现在返回 List
+            List<ScheduleExtractionData> dataList = scheduleExtractor.extract(currentDate, text);
             
-            // 修复客户端崩溃问题：确保 time 不为 null
-            if (data.getTime() == null) {
-                data.setTime(LocalTime.of(0, 0, 0));
+            // 修复客户端崩溃问题：确保每个日程的 time 不为 null
+            if (dataList != null) {
+                for (ScheduleExtractionData data : dataList) {
+                    if (data.getTime() == null) {
+                        data.setTime(LocalTime.of(0, 0, 0));
+                    }
+                }
             }
 
-            return ApiResponse.success("解析成功", data);
+            // 打印处理结果
+            System.out.println("========== AI 解析结果 ==========");
+            try {
+                // 使用 ObjectMapper 格式化输出 JSON
+                String jsonResult = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(dataList);
+                System.out.println(jsonResult);
+            } catch (Exception e) {
+                System.out.println("结果序列化失败: " + dataList);
+            }
+            System.out.println("=====================================");
+
+            return ApiResponse.success("解析成功", dataList);
         } catch (RuntimeException e) {
+            System.err.println("AI 解析业务异常: " + e.getMessage());
             return ApiResponse.error(401, e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();

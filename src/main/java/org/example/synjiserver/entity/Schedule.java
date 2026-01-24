@@ -27,18 +27,19 @@ public class Schedule {
     private LocalDate date;
 
     @JsonFormat(pattern = "HH:mm:ss")
-    @Column(name = "time")
+    @Column(name = "time", nullable = false)
     private LocalTime time;
 
-    @Column(name = "is_all_day")
+    @Column(name = "is_all_day", nullable = false)
     @JsonProperty("isAllDay")
     private boolean isAllDay;
 
     private String location;
 
+    @Column(nullable = false)
     private String belonging; // 所属分类，如"工作"、"生活"
 
-    @Column(name = "is_important")
+    @Column(name = "is_important", nullable = false)
     @JsonProperty("important")
     private boolean isImportant;
 
