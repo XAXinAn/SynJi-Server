@@ -3,6 +3,7 @@ package org.example.synjiserver.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.synjiserver.common.ApiResponse;
 import org.example.synjiserver.dto.ScheduleExtractionData;
+import org.example.synjiserver.dto.ScheduleExtractionResult;
 import org.example.synjiserver.entity.Schedule;
 import org.example.synjiserver.service.ScheduleExtractor;
 import org.example.synjiserver.service.ScheduleService;
@@ -91,8 +92,9 @@ public class ScheduleController {
             getUserIdFromToken(token);
 
             String currentDate = LocalDate.now().toString();
-            // 调用 AI 提取结构化数据，现在返回 List
-            List<ScheduleExtractionData> dataList = scheduleExtractor.extract(currentDate, text);
+            // 调用 AI 提取结构化数据，现在返回 ScheduleExtractionResult
+            ScheduleExtractionResult result = scheduleExtractor.extract(currentDate, text);
+            List<ScheduleExtractionData> dataList = result.getSchedules();
             
             // 修复客户端崩溃问题：确保每个日程的 time 不为 null
             if (dataList != null) {

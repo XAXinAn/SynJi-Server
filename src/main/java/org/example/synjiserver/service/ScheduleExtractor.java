@@ -3,9 +3,7 @@ package org.example.synjiserver.service;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
-import org.example.synjiserver.dto.ScheduleExtractionData;
-
-import java.util.List;
+import org.example.synjiserver.dto.ScheduleExtractionResult;
 
 public interface ScheduleExtractor {
 
@@ -19,7 +17,15 @@ public interface ScheduleExtractor {
         3. 如果用户没有明确说明时间，isAllDay 设为 true，time 设为 null。
         4. 如果用户提到"重要"、"紧急"等词，important 设为 true。
         5. 如果文本中包含多个日程，请识别出所有日程。
-        6. 直接返回 JSON 数组格式的数据（例如 [{"title":...}, {"title":...}]），即使只有一个日程也请包裹在数组中。不要包含任何 Markdown 标记或其他废话。
+        6. 直接返回 JSON 格式的数据，结构必须包含一个名为 "schedules" 的数组。
+           例如：
+           {
+             "schedules": [
+               { "title": "...", "date": "...", ... },
+               { "title": "...", "date": "...", ... }
+             ]
+           }
+        7. 不要包含任何 Markdown 标记或其他废话。
         """)
-    List<ScheduleExtractionData> extract(@V("currentDate") String currentDate, @UserMessage String userMessage);
+    ScheduleExtractionResult extract(@V("currentDate") String currentDate, @UserMessage String userMessage);
 }
