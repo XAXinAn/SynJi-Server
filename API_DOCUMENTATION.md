@@ -97,7 +97,8 @@
     "isAllDay": false,
     "location": "会议室3",
     "belonging": "工作",
-    "isImportant": true
+    "important": true,
+    "notes": "带上笔记本电脑"
   }
 ]
 ```
@@ -115,12 +116,11 @@
   "isAllDay": false,         // 选填
   "location": "超市",        // 选填
   "belonging": "生活",       // 选填
-  "isImportant": false       // 选填
+  "important": false,        // 选填，布尔值：是否重要
+  "notes": "记得带购物袋"      // 选填，长文本备注
 }
 ```
-- **说明**: 
-  - **重要**: 请勿在请求体中传递 `id` 字段，或者将 `id` 设为 `null`。
-  - 后端会自动生成 ID，并在响应的 `data` 中返回完整的对象。
+- **说明**: `id` 由后端生成，添加成功后会在响应的 `data` 中返回完整的对象（包含新生成的 `id`）。
 
 ### 3.3 修改日程
 - **路径**: `/api/schedule/update`
@@ -136,7 +136,8 @@
   "isAllDay": false,
   "location": "沃尔玛",
   "belonging": "生活",
-  "isImportant": true
+  "important": true,
+  "notes": "买点新鲜的水果"
 }
 ```
 
@@ -153,4 +154,11 @@
 ### 4.1 服务连通性测试 (Ping)
 - **路径**: `/api/ping`
 - **方法**: `GET`
-- **响应**: `Pong`
+- **响应示例**:
+```json
+{
+  "code": 200,
+  "message": "Server is running!",
+  "data": "Pong"
+}
+```

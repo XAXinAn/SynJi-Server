@@ -1,6 +1,8 @@
 package org.example.synjiserver.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -14,6 +16,7 @@ public class Schedule {
     private Long id;
 
     @Column(name = "user_id", nullable = false)
+    @JsonIgnore
     private Long userId;
 
     @Column(nullable = false)
@@ -28,6 +31,7 @@ public class Schedule {
     private LocalTime time;
 
     @Column(name = "is_all_day")
+    @JsonProperty("isAllDay")
     private boolean isAllDay;
 
     private String location;
@@ -35,12 +39,18 @@ public class Schedule {
     private String belonging; // 所属分类，如"工作"、"生活"
 
     @Column(name = "is_important")
+    @JsonProperty("important")
     private boolean isImportant;
 
+    @Column(columnDefinition = "TEXT")
+    private String notes;
+
     @Column(name = "created_at")
+    @JsonIgnore
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
+    @JsonIgnore
     private LocalDateTime updatedAt;
 
     @PrePersist
@@ -81,6 +91,9 @@ public class Schedule {
 
     public boolean isImportant() { return isImportant; }
     public void setImportant(boolean important) { isImportant = important; }
+
+    public String getNotes() { return notes; }
+    public void setNotes(String notes) { this.notes = notes; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

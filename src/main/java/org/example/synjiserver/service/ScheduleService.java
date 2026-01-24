@@ -43,6 +43,7 @@ public class ScheduleService {
         existing.setLocation(updatedSchedule.getLocation());
         existing.setBelonging(updatedSchedule.getBelonging());
         existing.setImportant(updatedSchedule.isImportant());
+        existing.setNotes(updatedSchedule.getNotes());
         
         return scheduleRepository.save(existing);
     }
