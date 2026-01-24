@@ -1,12 +1,17 @@
 package org.example.synjiserver.controller;
 
 import org.example.synjiserver.common.ApiResponse;
+import org.example.synjiserver.dto.ScheduleExtractionData;
 import org.example.synjiserver.entity.Schedule;
+import org.example.synjiserver.service.ScheduleExtractor;
 import org.example.synjiserver.service.ScheduleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/schedule")
@@ -14,6 +19,9 @@ public class ScheduleController {
 
     @Autowired
     private ScheduleService scheduleService;
+
+    @Autowired
+    private ScheduleExtractor scheduleExtractor;
 
     // 辅助方法：从 Token 中提取 UserId (模拟)
     private Long getUserIdFromToken(String token) {
@@ -59,6 +67,35 @@ public class ScheduleController {
         } catch (Exception e) {
             e.printStackTrace(); // 打印完整堆栈
             return ApiResponse.error(500, "添加失败: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/ai-parse")
+    public ApiResponse<ScheduleExtractionData> aiParse(@RequestHeader("Authorization") String token, @RequestBody Map<String, String> request) {
+        String text = request.get("text");
+        if (text == null || text.trim().isEmpty()) {
+            return ApiResponse.error(400, "文本内容不能为空");
+        }
+
+        try {
+            // 验证 Token (虽然解析本身不需要用户ID，但保持接口一致性)
+            getUserIdFromToken(token);
+
+            String currentDate = LocalDate.now().toString();
+            // 调用 AI 提取结构化数据
+            ScheduleExtractionData data = scheduleExtractor.extract(currentDate, text);
+            
+            // 修复客户端崩溃问题：确保 time 不为 null
+            if (data.getTime() == null) {
+                data.setTime(LocalTime.of(0, 0, 0));
+            }
+
+            return ApiResponse.success("解析成功", data);
+        } catch (RuntimeException e) {
+            return ApiResponse.error(401, e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ApiResponse.error(500, "解析失败: " + e.getMessage());
         }
     }
 
