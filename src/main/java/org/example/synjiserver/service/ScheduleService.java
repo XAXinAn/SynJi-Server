@@ -64,6 +64,10 @@ public class ScheduleService {
         existing.setImportant(updatedSchedule.isImportant());
         existing.setNotes(updatedSchedule.getNotes());
         
+        // 更新 AI 相关字段
+        existing.setAiGenerated(updatedSchedule.isAiGenerated());
+        existing.setViewed(updatedSchedule.isViewed());
+        
         return scheduleRepository.save(existing);
     }
 

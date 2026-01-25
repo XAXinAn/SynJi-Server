@@ -29,8 +29,8 @@ public class AiConfig {
                 .apiKey(apiKey)
                 .modelName(modelName)
                 .timeout(Duration.ofSeconds(60))
-                // 强制让模型返回 JSON 格式（如果模型支持 response_format 参数，这里可以配置，
-                // 但 LangChain4j 的 AiServices 配合 POJO 返回值通常会自动处理）
+                .temperature(0.1) // 降低随机性，减少幻觉和重复
+                .maxTokens(2000)  // 增加最大 Token 数，防止 JSON 截断
                 .build();
     }
 

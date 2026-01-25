@@ -46,8 +46,16 @@ public class Schedule {
     @Column(columnDefinition = "TEXT")
     private String notes;
 
+    @Column(name = "is_ai_generated", nullable = false)
+    @JsonProperty("isAiGenerated")
+    private boolean isAiGenerated;
+
+    @Column(name = "is_viewed", nullable = false)
+    @JsonProperty("isViewed")
+    private boolean isViewed;
+
     @Column(name = "created_at")
-    @JsonIgnore
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
@@ -95,6 +103,12 @@ public class Schedule {
 
     public String getNotes() { return notes; }
     public void setNotes(String notes) { this.notes = notes; }
+
+    public boolean isAiGenerated() { return isAiGenerated; }
+    public void setAiGenerated(boolean aiGenerated) { isAiGenerated = aiGenerated; }
+
+    public boolean isViewed() { return isViewed; }
+    public void setViewed(boolean viewed) { isViewed = viewed; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

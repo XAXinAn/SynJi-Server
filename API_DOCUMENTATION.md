@@ -1,4 +1,4 @@
-# 讯极日历 (SynJi AI Calendar) 全面接口技术文档
+# 讯极日历 (SynJi AI Calendar) 全面接口技术文档 (v1.3)
 
 ## 1. 基础约定
 
@@ -19,6 +19,7 @@
 ### 1.3 数据格式规范
 - **日期**: `yyyy-MM-dd` (例如: `2024-01-23`)
 - **时间**: `HH:mm:ss` (例如: `10:30:00`)
+- **完整时间**: `yyyy-MM-dd HH:mm:ss` (例如: `2024-01-23 10:30:00`)
 - **字符编码**: `UTF-8`
 
 ### 1.4 安全鉴权
@@ -98,7 +99,10 @@
     "location": "会议室3",
     "belonging": "工作",
     "important": true,
-    "notes": "带上笔记本电脑"
+    "notes": "带上笔记本电脑",
+    "isAiGenerated": true,  // 是否由AI自动提取生成
+    "isViewed": false,      // 用户是否已在“添加记录”页点击查看过
+    "createdAt": "2024-01-22 14:30:00" // [新增] 创建时间，用于前端排序
   }
 ]
 ```
@@ -112,12 +116,14 @@
 {
   "title": "买菜",           // 必填
   "date": "2024-01-24",      // 必填，格式 yyyy-MM-dd
-  "time": "18:00:00",        // 必填，格式 HH:mm:ss (若为空，后端默认设为 00:00:00)
-  "isAllDay": false,         // 必填 (若为空，后端默认设为 false)
+  "time": "18:00:00",        // 选填，格式 HH:mm:ss (默认为 00:00:00)
+  "isAllDay": false,         // 选填 (默认为 false)
   "location": "超市",        // 选填
-  "belonging": "生活",       // 必填 (若为空，后端默认设为 "默认")
-  "important": false,        // 必填 (若为空，后端默认设为 false)
-  "notes": "记得带购物袋"      // 选填，长文本备注
+  "belonging": "生活",       // 选填 (默认为 "默认")
+  "important": false,        // 选填，布尔值：是否重要
+  "notes": "记得带购物袋",      // 选填，长文本备注
+  "isAiGenerated": true,     // 必填：通过识别添加时传 true，手动添加时传 false
+  "isViewed": false          // 必填：通过识别添加时传 false，手动添加时传 true
 }
 ```
 
@@ -132,7 +138,7 @@
   "text": "明天下午两点在沃尔玛二楼开会，记得带电脑。另外后天晚上8点有个聚餐。"
 }
 ```
-- **响应数据 (`data`)**: 返回一个 `Schedule` 对象数组（即使只有一个日程，也返回数组）。
+- **响应数据 (`data`)**: 返回一个 `ScheduleExtractionData` 对象数组（即使只有一个日程，也返回数组）。
 ```json
 [
   {
@@ -141,9 +147,8 @@
     "time": "14:00:00",
     "isAllDay": false,
     "location": "沃尔玛二楼",
-    "belonging": "工作",
-    "important": false,
-    "notes": "记得带电脑"
+    "notes": "记得带电脑",
+    "important": false
   },
   {
     "title": "聚餐",
@@ -151,21 +156,22 @@
     "time": "20:00:00",
     "isAllDay": false,
     "location": null,
-    "belonging": "生活",
-    "important": false,
-    "notes": null
+    "notes": null,
+    "important": false
   }
 ]
 ```
 - **注意**: 
   1. 如果 AI 解析结果中没有明确时间，`time` 字段将默认返回 `00:00:00`，以避免客户端空指针异常。
   2. 客户端应遍历返回的数组，并为每个日程对象调用 `/api/schedule/add` 接口进行保存，或者在前端提供批量确认界面。
+  3. 返回的对象结构与 `Schedule` 实体略有不同（不包含 `id`, `userId`, `belonging` 等后端字段），仅包含 AI 提取的信息。
 
-### 3.4 修改日程
+### 3.4 修改日程 / 标记已读
 - **路径**: `/api/schedule/update`
 - **方法**: `PUT`
 - **Header**: `Authorization: <Token>`
 - **请求体**: (同 3.2，但需包含 `id`)
+- **说明**: 客户端点击带红点的日程时，会发送 `isViewed: true` 来消除红点。
 
 ### 3.5 删除日程
 - **路径**: `/api/schedule/delete/{id}`
@@ -175,16 +181,13 @@
 
 ---
 
-## 4. 系统工具
+## 4. 后端逻辑变更说明
 
-### 4.1 服务连通性测试 (Ping)
-- **路径**: `/api/ping`
-- **方法**: `GET`
-- **响应示例**:
-```json
-{
-  "code": 200,
-  "message": "Server is running!",
-  "data": "Pong"
-}
-```
+1. **数据库字段**:
+   - `is_ai_generated` (boolean): 标识日程来源。
+   - `is_viewed` (boolean): 标识用户是否已查看自动生成的日程。
+   - `created_at` (datetime): 记录创建时间，用于前端排序。
+2. **逻辑判断**:
+   - 前端“添加日程记录”页面仅显示 `isAiGenerated == true` 的记录。
+   - 红点显示条件：`isAiGenerated == true && isViewed == false`。
+   - 排序规则：前端可根据 `createdAt` 字段进行降序排列（最新添加的在最前）。
