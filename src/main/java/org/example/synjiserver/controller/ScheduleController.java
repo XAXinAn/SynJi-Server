@@ -46,6 +46,7 @@ public class ScheduleController {
         try {
             Long userId = getUserIdFromToken(token);
             System.out.println("查询日程列表, userId: " + userId);
+            // 现在 getUserSchedules 包含了共享日程逻辑
             List<Schedule> list = scheduleService.getUserSchedules(userId);
             System.out.println("查询结果数量: " + list.size());
             return ApiResponse.success("获取成功", list);
@@ -61,7 +62,7 @@ public class ScheduleController {
             Long userId = getUserIdFromToken(token);
             System.out.println("收到新增日程请求, userId: " + userId);
             System.out.println("日程标题: " + schedule.getTitle());
-            System.out.println("日程日期: " + schedule.getDate());
+            System.out.println("日程归属: " + schedule.getBelonging());
             
             Schedule created = scheduleService.addSchedule(userId, schedule);
             System.out.println("新增成功, ID: " + created.getId());
@@ -88,11 +89,11 @@ public class ScheduleController {
         }
 
         try {
-            // 验证 Token (虽然解析本身不需要用户ID，但保持接口一致性)
+            // 验证 Token
             getUserIdFromToken(token);
 
             String currentDate = LocalDate.now().toString();
-            // 调用 AI 提取结构化数据，现在返回 ScheduleExtractionResult
+            // 调用 AI 提取结构化数据
             ScheduleExtractionResult result = scheduleExtractor.extract(currentDate, text);
             List<ScheduleExtractionData> dataList = result.getSchedules();
             
@@ -108,7 +109,6 @@ public class ScheduleController {
             // 打印处理结果
             System.out.println("========== AI 解析结果 ==========");
             try {
-                // 使用 ObjectMapper 格式化输出 JSON
                 String jsonResult = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(dataList);
                 System.out.println(jsonResult);
             } catch (Exception e) {
@@ -139,7 +139,7 @@ public class ScheduleController {
             if (e.getMessage().contains("Token")) {
                 return ApiResponse.error(401, e.getMessage());
             }
-            return ApiResponse.error(404, e.getMessage());
+            return ApiResponse.error(404, e.getMessage()); // 或 403 Forbidden
         } catch (Exception e) {
             e.printStackTrace();
             return ApiResponse.error(500, "修改失败: " + e.getMessage());

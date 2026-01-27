@@ -36,11 +36,11 @@ public class AuthService {
         vc.setExpiresAt(LocalDateTime.now().plusMinutes(5)); // 5分钟有效期
         codeRepository.save(vc);
 
-        // 3. 实际场景这里调用短信API发送 code 给 phoneNumber
+        // 3. 控制台输出验证码 (模拟发送)
         System.out.println("=== 模拟短信发送 ===");
         System.out.println("手机号: " + phoneNumber);
         System.out.println("验证码: " + code);
-        System.out.println("====================");
+        System.out.println("=============================");
     }
 
     // 登录/注册

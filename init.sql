@@ -47,7 +47,7 @@ CREATE TABLE `schedules` (
   `time` TIME NOT NULL DEFAULT '00:00:00' COMMENT '时间 (HH:mm:ss)',
   `is_all_day` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否全天',
   `location` VARCHAR(255) DEFAULT NULL COMMENT '地点',
-  `belonging` VARCHAR(64) NOT NULL DEFAULT '默认' COMMENT '所属分类',
+  `belonging` VARCHAR(128) NOT NULL DEFAULT '个人' COMMENT '所属分类: 个人 或 群组名称',
   `is_important` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否重要',
   `notes` TEXT DEFAULT NULL COMMENT '备注',
   `is_ai_generated` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否由AI自动提取生成',
@@ -57,3 +57,30 @@ CREATE TABLE `schedules` (
   PRIMARY KEY (`id`),
   KEY `idx_user_date` (`user_id`, `date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='日程表';
+
+-- 若存在先删除群组表
+DROP TABLE IF EXISTS `groups`;
+
+-- 创建群组表
+CREATE TABLE `groups` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '群组ID',
+  `name` VARCHAR(128) NOT NULL COMMENT '群组名称',
+  `invite_code` VARCHAR(10) NOT NULL COMMENT '邀请码',
+  `owner_id` BIGINT NOT NULL COMMENT '群主ID',
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_invite_code` (`invite_code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='群组表';
+
+-- 若存在先删除群组成员表
+DROP TABLE IF EXISTS `group_members`;
+
+-- 创建群组成员表
+CREATE TABLE `group_members` (
+  `group_id` BIGINT NOT NULL COMMENT '群组ID',
+  `user_id` BIGINT NOT NULL COMMENT '用户ID',
+  `joined_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '加入时间',
+  `role` VARCHAR(20) NOT NULL DEFAULT 'MEMBER' COMMENT '角色: OWNER, ADMIN, MEMBER',
+  PRIMARY KEY (`group_id`, `user_id`),
+  KEY `idx_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='群组成员表';
