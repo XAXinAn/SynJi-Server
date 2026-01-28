@@ -37,7 +37,8 @@ public class AuthService {
     @Transactional
     public void sendCode(String phoneNumber) {
         // 1. 生成6位随机验证码
-        String code = String.format("%06d", new Random().nextInt(999999));
+        // String code = String.format("%06d", new Random().nextInt(999999));
+        String code = "111111"; // 内测固定验证码
         
         // 2. 保存到数据库
         VerificationCode vc = new VerificationCode();
@@ -47,6 +48,7 @@ public class AuthService {
         codeRepository.save(vc);
 
         // 3. 调用 Spug 接口发送短信
+        /*
         try {
             Map<String, Object> body = new HashMap<>();
             body.put("name", "讯极日历");
@@ -66,6 +68,8 @@ public class AuthService {
             // 即使发送失败，为了防止暴力请求，数据库记录依然保留，或者您可以选择在这里抛出异常回滚事务
             // throw new RuntimeException("短信发送失败，请稍后重试");
         }
+        */
+        System.out.println("内测模式，验证码固定为: " + code);
     }
 
     // 登录/注册
