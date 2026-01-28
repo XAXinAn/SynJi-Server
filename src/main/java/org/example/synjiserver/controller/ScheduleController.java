@@ -46,12 +46,30 @@ public class ScheduleController {
         try {
             Long userId = getUserIdFromToken(token);
             System.out.println("查询日程列表, userId: " + userId);
-            // 现在 getUserSchedules 包含了共享日程逻辑
             List<Schedule> list = scheduleService.getUserSchedules(userId);
             System.out.println("查询结果数量: " + list.size());
             return ApiResponse.success("获取成功", list);
         } catch (RuntimeException e) {
             System.err.println("查询失败: " + e.getMessage());
+            return ApiResponse.error(401, e.getMessage());
+        }
+    }
+
+    @GetMapping("/search")
+    public ApiResponse<List<Schedule>> search(@RequestHeader("Authorization") String token, @RequestParam("keyword") String keyword) {
+        try {
+            Long userId = getUserIdFromToken(token);
+            System.out.println("搜索日程, userId: " + userId + ", keyword: " + keyword);
+            
+            if (keyword == null || keyword.trim().isEmpty()) {
+                return ApiResponse.error(400, "搜索关键词不能为空");
+            }
+
+            List<Schedule> list = scheduleService.searchSchedules(userId, keyword);
+            System.out.println("搜索结果数量: " + list.size());
+            return ApiResponse.success("搜索成功", list);
+        } catch (RuntimeException e) {
+            System.err.println("搜索失败: " + e.getMessage());
             return ApiResponse.error(401, e.getMessage());
         }
     }

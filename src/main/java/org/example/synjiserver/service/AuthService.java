@@ -35,10 +35,10 @@ public class AuthService {
 
     // 发送验证码
     @Transactional
-    public void sendCode(String phoneNumber) {
+    public String sendCode(String phoneNumber) {
         // 1. 生成6位随机验证码
-        // String code = String.format("%06d", new Random().nextInt(999999));
-        String code = "111111"; // 内测固定验证码
+        String code = String.format("%06d", new Random().nextInt(999999));
+        // String code = "111111"; // 内测固定验证码
         
         // 2. 保存到数据库
         VerificationCode vc = new VerificationCode();
@@ -69,7 +69,8 @@ public class AuthService {
             // throw new RuntimeException("短信发送失败，请稍后重试");
         }
         */
-        System.out.println("内测模式，验证码固定为: " + code);
+        System.out.println("内测模式，验证码为: " + code);
+        return code;
     }
 
     // 登录/注册

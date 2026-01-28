@@ -19,10 +19,11 @@ public class AuthController {
     private AuthService authService;
 
     @PostMapping("/send-code")
-    public ApiResponse<Void> sendCode(@RequestBody SendCodeRequest request) {
+    public ApiResponse<String> sendCode(@RequestBody SendCodeRequest request) {
         try {
-            authService.sendCode(request.getPhoneNumber());
-            return ApiResponse.success("验证码发送成功", null);
+            String code = authService.sendCode(request.getPhoneNumber());
+            // 内测期间，直接将验证码返回给前端
+            return ApiResponse.success("验证码发送成功", code);
         } catch (Exception e) {
             return ApiResponse.error(500, "发送失败: " + e.getMessage());
         }
