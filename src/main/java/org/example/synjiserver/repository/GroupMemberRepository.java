@@ -28,5 +28,6 @@ public interface GroupMemberRepository extends JpaRepository<GroupMember, Long> 
     Optional<GroupMember> findByGroupIdAndUserId(Long groupId, Long userId);
 
     // 统计群组内管理员数量
+    @Query("SELECT COUNT(gm) FROM GroupMember gm WHERE gm.groupId = :groupId AND gm.role = :role")
     long countByGroupIdAndRole(Long groupId, GroupMember.Role role);
 }
