@@ -1,8 +1,9 @@
 SHELL := /bin/bash
 COMPOSE := docker compose
 ENV_FILE ?= .env
+export COMPOSE_BAKE ?= false
 
-.PHONY: help init-env check-env build up deploy down restart logs ps clean app-shell db-shell
+.PHONY: help init-env check-env build up deploy deploy-retry down restart logs ps clean app-shell db-shell
 
 help:
 	@echo "Targets:"
@@ -10,6 +11,7 @@ help:
 	@echo "  make build      # build app image"
 	@echo "  make up         # start mysql + app in background"
 	@echo "  make deploy     # alias of make up"
+	@echo "  make deploy-retry # deploy with auto retry when network is unstable"
 	@echo "  make down       # stop services"
 	@echo "  make restart    # restart services"
 	@echo "  make logs       # tail app/mysql logs"
@@ -39,6 +41,21 @@ up: check-env
 	$(COMPOSE) --env-file $(ENV_FILE) up -d --build
 
 deploy: up
+
+deploy-retry: check-env
+	@attempt=1; max=5; \
+	while [ $$attempt -le $$max ]; do \
+		echo "Deploy attempt $$attempt/$$max ..."; \
+		if $(COMPOSE) --env-file $(ENV_FILE) up -d --build; then \
+			echo "Deploy succeeded"; \
+			exit 0; \
+		fi; \
+		echo "Deploy failed, waiting before retry ..."; \
+		sleep $$((10 * $$attempt)); \
+		attempt=$$((attempt + 1)); \
+	done; \
+	echo "Deploy failed after $$max attempts"; \
+	exit 1
 
 down:
 	$(COMPOSE) --env-file $(ENV_FILE) down

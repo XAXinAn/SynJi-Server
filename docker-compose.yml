@@ -1,6 +1,6 @@
 services:
   mysql:
-    image: mysql:8.0.37
+    image: ${MYSQL_IMAGE:-docker.m.daocloud.io/library/mysql:8.0.37}
     container_name: synji-mysql
     restart: unless-stopped
     environment:
@@ -30,6 +30,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        BASE_REGISTRY: ${BASE_REGISTRY:-docker.m.daocloud.io/library}
     image: synji-server:latest
     restart: unless-stopped
     depends_on:
