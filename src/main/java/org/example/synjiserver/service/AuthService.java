@@ -7,10 +7,10 @@ import org.example.synjiserver.entity.VerificationCode;
 import org.example.synjiserver.repository.UserRepository;
 import org.example.synjiserver.repository.VerificationCodeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -28,9 +28,21 @@ public class AuthService {
     private VerificationCodeRepository codeRepository;
 
     private final WebClient webClient;
+    private final boolean smsEnabled;
+    private final String smsSendPath;
+    private final String smsName;
 
-    public AuthService(WebClient.Builder webClientBuilder) {
-        this.webClient = webClientBuilder.baseUrl("https://push.spug.cc").build();
+    public AuthService(
+            WebClient.Builder webClientBuilder,
+            @Value("${app.sms.base-url:https://push.spug.cc}") String smsBaseUrl,
+            @Value("${app.sms.enabled:false}") boolean smsEnabled,
+            @Value("${app.sms.send-path:/send/REPLACE_WITH_YOUR_TOKEN}") String smsSendPath,
+            @Value("${app.sms.name:讯极日历}") String smsName
+    ) {
+        this.webClient = webClientBuilder.baseUrl(smsBaseUrl).build();
+        this.smsEnabled = smsEnabled;
+        this.smsSendPath = smsSendPath;
+        this.smsName = smsName;
     }
 
     // 发送验证码
@@ -47,29 +59,28 @@ public class AuthService {
         vc.setExpiresAt(LocalDateTime.now().plusMinutes(5)); // 5分钟有效期
         codeRepository.save(vc);
 
-        // 3. 调用 Spug 接口发送短信
-        /*
-        try {
-            Map<String, Object> body = new HashMap<>();
-            body.put("name", "讯极日历");
-            body.put("code", code);
-            body.put("targets", phoneNumber);
+        // 3. 调用 Spug 接口发送短信（内测默认关闭）
+        if (smsEnabled) {
+            try {
+                Map<String, Object> body = new HashMap<>();
+                body.put("name", smsName);
+                body.put("code", code);
+                body.put("targets", phoneNumber);
 
-            String response = webClient.post()
-                    .uri("/send/X4PBx8E5Pq8YAny5")
-                    .bodyValue(body)
-                    .retrieve()
-                    .bodyToMono(String.class)
-                    .block(); // 阻塞等待结果，确保发送成功
+                String response = webClient.post()
+                        .uri(smsSendPath)
+                        .bodyValue(body)
+                        .retrieve()
+                        .bodyToMono(String.class)
+                        .block();
 
-            System.out.println("短信发送结果: " + response);
-        } catch (Exception e) {
-            System.err.println("短信发送失败: " + e.getMessage());
-            // 即使发送失败，为了防止暴力请求，数据库记录依然保留，或者您可以选择在这里抛出异常回滚事务
-            // throw new RuntimeException("短信发送失败，请稍后重试");
+                System.out.println("短信发送结果: " + response);
+            } catch (Exception e) {
+                System.err.println("短信发送失败: " + e.getMessage());
+            }
+        } else {
+            System.out.println("内测模式，验证码为: " + code);
         }
-        */
-        System.out.println("内测模式，验证码为: " + code);
         return code;
     }
 

@@ -1,0 +1,67 @@
+services:
+  mysql:
+    image: mysql:8.0.37
+    container_name: synji-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?DB_ROOT_PASSWORD is required}
+      MYSQL_DATABASE: ${DB_NAME:-synji_calendar}
+      MYSQL_USER: ${DB_USERNAME:-synji}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      TZ: ${TZ:-Asia/Shanghai}
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$${MYSQL_ROOT_PASSWORD} --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - synji-net
+
+  app:
+    container_name: synji-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: synji-server:latest
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-synji_calendar}
+      DB_USERNAME: ${DB_USERNAME:-synji}
+      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      JPA_DDL_AUTO: ${JPA_DDL_AUTO:-validate}
+      JPA_SHOW_SQL: ${JPA_SHOW_SQL:-true}
+      APP_CORS_ALLOWED_ORIGIN_PATTERNS: ${APP_CORS_ALLOWED_ORIGIN_PATTERNS:-*}
+      APP_AUTH_RETURN_VERIFY_CODE: ${APP_AUTH_RETURN_VERIFY_CODE:-false}
+      APP_SMS_ENABLED: ${APP_SMS_ENABLED:-false}
+      APP_SMS_BASE_URL: ${APP_SMS_BASE_URL:-https://push.spug.cc}
+      APP_SMS_SEND_PATH: ${APP_SMS_SEND_PATH:-/send/REPLACE_WITH_YOUR_TOKEN}
+      APP_SMS_NAME: ${APP_SMS_NAME:-讯极日历}
+      SILICON_API_KEY: ${SILICON_API_KEY:?SILICON_API_KEY is required}
+      TZ: ${TZ:-Asia/Shanghai}
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    networks:
+      - synji-net
+
+volumes:
+  mysql_data:
+
+networks:
+  synji-net:
+    driver: bridge

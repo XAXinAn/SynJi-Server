@@ -1,0 +1,10 @@
+.git
+.idea
+target
+*.log
+.env
+.env.*
+.DS_Store
+
+# Large local assets not needed by backend runtime
+qwen-0.5B

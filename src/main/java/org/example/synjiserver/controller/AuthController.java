@@ -6,6 +6,7 @@ import org.example.synjiserver.dto.LoginResponse;
 import org.example.synjiserver.dto.SendCodeRequest;
 import org.example.synjiserver.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,12 +19,17 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
+    @Value("${app.auth.return-verify-code:true}")
+    private boolean returnVerifyCode;
+
     @PostMapping("/send-code")
     public ApiResponse<String> sendCode(@RequestBody SendCodeRequest request) {
         try {
             String code = authService.sendCode(request.getPhoneNumber());
-            // 内测期间，直接将验证码返回给前端
-            return ApiResponse.success("验证码发送成功", code);
+            if (returnVerifyCode) {
+                return ApiResponse.success("验证码发送成功", code);
+            }
+            return ApiResponse.success("验证码发送成功", null);
         } catch (Exception e) {
             return ApiResponse.error(500, "发送失败: " + e.getMessage());
         }

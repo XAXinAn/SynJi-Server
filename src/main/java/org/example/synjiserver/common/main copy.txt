@@ -1,0 +1,45 @@
+package org.example.synjiserver.common;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Locale;
+import java.util.Scanner;
+
+public class main {
+    public static void main(String[] args) {
+        Scanner scanner=new Scanner(System.in);
+        int[] letterCount=new int[26];
+        int maxWords=0;
+        int pdStart=0;
+        String filePath=scanner.nextLine();
+        try(BufferedReader br=new BufferedReader(new FileReader(filePath));){
+            String line;
+            while((line=br.readLine())!=null){
+                for(char c:line.toCharArray()){
+                    if(Character.isLetter(c)){
+                        letterCount[Character.toLowerCase(c)-'a']++;
+                    }
+                }
+                String[] words=line.split("[, .]+");
+                for(String word:words){
+                    if(!word.isEmpty()){
+                        maxWords++;
+                        if(word.toLowerCase().startsWith("pd")){
+                            pdStart++;
+                        }
+                    }
+                }
+            }
+
+            for(int i=0;i<26;i++){
+                System.out.println(('a'+i)+':'+letterCount[i]);
+            }
+            System.out.println("letter:"+maxWords);
+            System.out.println("pd:"+pdStart);
+        }catch(IOException e) {
+
+        }
+
+    }
+}
