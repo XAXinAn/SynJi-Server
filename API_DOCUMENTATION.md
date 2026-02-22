@@ -42,7 +42,8 @@
 
 ### 2.2 登录
 - **接口**: `POST /api/auth/login`
-- **请求体**: `{ "phoneNumber": "...", "code": "..." }` (注意：字段是 code)
+- **请求体**: `{ "phoneNumber": "...", "verifyCode": "..." }`
+- **兼容字段**: 后端同时兼容历史字段 `code`，即 `{ "phoneNumber": "...", "code": "..." }` 也可用。
 - **响应**: 返回 `token` 和 `user` 对象。
 
 ### 2.3 用户资料

@@ -87,6 +87,13 @@ public class AuthService {
     // 登录/注册
     @Transactional
     public LoginResponse login(String phoneNumber, String code) {
+        if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
+            throw new RuntimeException("手机号不能为空");
+        }
+        if (code == null || code.trim().isEmpty()) {
+            throw new RuntimeException("验证码不能为空");
+        }
+
         // 1. 校验验证码
         Optional<VerificationCode> validCode = codeRepository
                 .findFirstByPhoneNumberAndCodeAndIsUsedFalseAndExpiresAtAfterOrderByCreatedAtDesc(

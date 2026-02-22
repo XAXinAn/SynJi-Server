@@ -25,6 +25,10 @@ public class AuthController {
     @PostMapping("/send-code")
     public ApiResponse<String> sendCode(@RequestBody SendCodeRequest request) {
         try {
+            if (request.getPhoneNumber() == null || request.getPhoneNumber().trim().isEmpty()) {
+                return ApiResponse.error(400, "手机号不能为空");
+            }
+
             String code = authService.sendCode(request.getPhoneNumber());
             if (returnVerifyCode) {
                 return ApiResponse.success("验证码发送成功", code);
@@ -38,6 +42,13 @@ public class AuthController {
     @PostMapping("/login")
     public ApiResponse<LoginResponse> login(@RequestBody LoginRequest request) {
         try {
+            if (request.getPhoneNumber() == null || request.getPhoneNumber().trim().isEmpty()) {
+                return ApiResponse.error(400, "手机号不能为空");
+            }
+            if (request.getVerifyCode() == null || request.getVerifyCode().trim().isEmpty()) {
+                return ApiResponse.error(400, "验证码不能为空");
+            }
+
             LoginResponse response = authService.login(request.getPhoneNumber(), request.getVerifyCode());
             return ApiResponse.success("登录成功", response);
         } catch (RuntimeException e) {

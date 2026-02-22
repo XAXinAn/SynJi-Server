@@ -1,7 +1,12 @@
 package org.example.synjiserver.dto;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+
 public class LoginRequest {
     private String phoneNumber;
+
+    // Accept both "verifyCode" and legacy "code" from different clients.
+    @JsonAlias({"verifyCode", "code"})
     private String verifyCode;
 
     public String getPhoneNumber() {
