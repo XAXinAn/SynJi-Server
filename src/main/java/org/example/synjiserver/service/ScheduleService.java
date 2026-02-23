@@ -115,6 +115,9 @@ public class ScheduleService {
 
         existing.setImportant(updatedSchedule.isImportant());
         existing.setNotes(updatedSchedule.getNotes());
+        if (updatedSchedule.getOcrText() != null) {
+            existing.setOcrText(updatedSchedule.getOcrText());
+        }
         
         existing.setAiGenerated(updatedSchedule.isAiGenerated());
         existing.setViewed(updatedSchedule.isViewed());

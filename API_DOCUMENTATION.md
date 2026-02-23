@@ -122,7 +122,25 @@
   }
   ```
 
-### 4.3 AI 流程规范
+### 4.3 新增日程
+- **路径**: `POST /api/schedule/add`
+- **请求体新增可选字段**:
+  - `text` (String): 前端 OCR 原文。
+- **说明**:
+  - 后端会将 `text` 入库到 `schedules.ocr_text`。
+  - 该字段仅用于采集，不会出现在接口响应中。
+
+### 4.4 修改日程
+- **路径**: `PUT /api/schedule/update`
+- **请求体新增可选字段**:
+  - `text` (String): 前端 OCR 原文。
+- **更新规则**:
+  - 传 `text` 时，覆盖数据库中 `ocr_text`。
+  - 不传 `text` 或传 `null` 时，保持原值。
+- **说明**:
+  - `text/ocr_text` 不会出现在接口响应中。
+
+### 4.5 AI 流程规范
 1. **解析 (ai-parse)**: 纯文本识别，不产生数据库记录。
 2. **确认入库 (add)**: 
    - **AI 路径**: `isAiGenerated: true`, `isViewed: false` (产生红点)。
@@ -136,6 +154,7 @@
 | 逻辑字段 | 数据库列名 | 类型 | 说明 |
 | :--- | :--- | :--- | :--- |
 | role | role | VARCHAR | 角色标识 |
+| ocrText | ocr_text | TEXT | OCR原文，仅入库不回传 |
 | isAiGenerated | is_ai_generated | TINYINT | 1/0 映射 |
 | isViewed | is_viewed | TINYINT | 1/0 映射 |
 

@@ -1,0 +1,2 @@
+ALTER TABLE schedules
+ADD COLUMN ocr_text TEXT NULL COMMENT '前端OCR原文' AFTER notes;

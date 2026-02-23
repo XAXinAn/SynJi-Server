@@ -50,6 +50,7 @@ CREATE TABLE `schedules` (
   `belonging` VARCHAR(128) NOT NULL DEFAULT '个人' COMMENT '所属分类: 个人 或 群组名称',
   `is_important` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否重要',
   `notes` TEXT DEFAULT NULL COMMENT '备注',
+  `ocr_text` TEXT DEFAULT NULL COMMENT '前端OCR原文',
   `is_ai_generated` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否由AI自动提取生成',
   `is_viewed` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '用户是否已查看',
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',

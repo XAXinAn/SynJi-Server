@@ -1,5 +1,6 @@
 package org.example.synjiserver.entity;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -45,6 +46,11 @@ public class Schedule {
 
     @Column(columnDefinition = "TEXT")
     private String notes;
+
+    @Column(name = "ocr_text", columnDefinition = "TEXT")
+    @JsonAlias("text")
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private String ocrText;
 
     @Column(name = "is_ai_generated", nullable = false)
     @JsonProperty("isAiGenerated")
@@ -103,6 +109,9 @@ public class Schedule {
 
     public String getNotes() { return notes; }
     public void setNotes(String notes) { this.notes = notes; }
+
+    public String getOcrText() { return ocrText; }
+    public void setOcrText(String ocrText) { this.ocrText = ocrText; }
 
     public boolean isAiGenerated() { return isAiGenerated; }
     public void setAiGenerated(boolean aiGenerated) { isAiGenerated = aiGenerated; }
