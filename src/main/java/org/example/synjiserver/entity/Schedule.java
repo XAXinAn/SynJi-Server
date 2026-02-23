@@ -38,6 +38,7 @@ public class Schedule {
     private String location;
 
     @Column(nullable = false)
+    @JsonAlias({"groupName", "belongingName", "category"})
     private String belonging; // 所属分类，如"工作"、"生活"
 
     @Column(name = "is_important", nullable = false)

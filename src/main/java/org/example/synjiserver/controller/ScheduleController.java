@@ -30,11 +30,18 @@ public class ScheduleController {
 
     // 辅助方法：从 Token 中提取 UserId (模拟)
     private Long getUserIdFromToken(String token) {
-        if (token == null || !token.startsWith("mock-token-")) {
+        if (token == null || token.isBlank()) {
+            throw new RuntimeException("未登录或 Token 无效");
+        }
+        String rawToken = token.trim();
+        if (rawToken.toLowerCase().startsWith("bearer ")) {
+            rawToken = rawToken.substring(7).trim();
+        }
+        if (!rawToken.startsWith("mock-token-")) {
             throw new RuntimeException("未登录或 Token 无效");
         }
         try {
-            String[] parts = token.split("-");
+            String[] parts = rawToken.split("-");
             return Long.parseLong(parts[2]);
         } catch (Exception e) {
             throw new RuntimeException("Token 格式错误");
@@ -157,11 +164,23 @@ public class ScheduleController {
             if (e.getMessage().contains("Token")) {
                 return ApiResponse.error(401, e.getMessage());
             }
-            return ApiResponse.error(404, e.getMessage()); // 或 403 Forbidden
+            if (e.getMessage().contains("无权")) {
+                return ApiResponse.error(403, e.getMessage());
+            }
+            if (e.getMessage().contains("不存在")) {
+                return ApiResponse.error(404, e.getMessage());
+            }
+            return ApiResponse.error(400, e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
             return ApiResponse.error(500, "修改失败: " + e.getMessage());
         }
+    }
+
+    // 兼容旧客户端使用 POST 更新
+    @PostMapping("/update")
+    public ApiResponse<Schedule> updateByPost(@RequestHeader("Authorization") String token, @RequestBody Schedule schedule) {
+        return update(token, schedule);
     }
 
     @DeleteMapping("/delete/{id}")
@@ -174,10 +193,22 @@ public class ScheduleController {
             if (e.getMessage().contains("Token")) {
                 return ApiResponse.error(401, e.getMessage());
             }
-            return ApiResponse.error(404, e.getMessage());
+            if (e.getMessage().contains("无权")) {
+                return ApiResponse.error(403, e.getMessage());
+            }
+            if (e.getMessage().contains("不存在")) {
+                return ApiResponse.error(404, e.getMessage());
+            }
+            return ApiResponse.error(400, e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
             return ApiResponse.error(500, "删除失败: " + e.getMessage());
         }
+    }
+
+    // 兼容旧客户端使用 POST 删除
+    @PostMapping("/delete/{id}")
+    public ApiResponse<Void> deleteByPost(@RequestHeader("Authorization") String token, @PathVariable Long id) {
+        return delete(token, id);
     }
 }

@@ -124,6 +124,9 @@
 
 ### 4.3 新增日程
 - **路径**: `POST /api/schedule/add`
+- **归属字段兼容**:
+  - 推荐字段：`belonging`
+  - 兼容字段：`groupName` / `belongingName` / `category`
 - **请求体新增可选字段**:
   - `text` (String): 前端 OCR 原文。
 - **说明**:
@@ -132,6 +135,7 @@
 
 ### 4.4 修改日程
 - **路径**: `PUT /api/schedule/update`
+- **兼容方法**: `POST /api/schedule/update`（旧客户端兼容）
 - **请求体新增可选字段**:
   - `text` (String): 前端 OCR 原文。
 - **更新规则**:
@@ -140,7 +144,11 @@
 - **说明**:
   - `text/ocr_text` 不会出现在接口响应中。
 
-### 4.5 AI 流程规范
+### 4.5 删除日程
+- **路径**: `DELETE /api/schedule/delete/{id}`
+- **兼容方法**: `POST /api/schedule/delete/{id}`（旧客户端兼容）
+
+### 4.6 AI 流程规范
 1. **解析 (ai-parse)**: 纯文本识别，不产生数据库记录。
 2. **确认入库 (add)**: 
    - **AI 路径**: `isAiGenerated: true`, `isViewed: false` (产生红点)。

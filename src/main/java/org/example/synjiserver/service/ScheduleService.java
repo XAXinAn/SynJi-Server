@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,7 +24,7 @@ public class ScheduleService {
     public List<Schedule> getUserSchedules(Long userId) {
         // 1. 获取用户加入的所有群组
         List<GroupInfo> userGroups = groupService.getUserGroups(userId);
-        
+
         // 2. 提取群组名称列表
         List<String> groupNames = userGroups.stream()
                 .map(GroupInfo::getName)
@@ -43,7 +42,7 @@ public class ScheduleService {
     public List<Schedule> searchSchedules(Long userId, String keyword) {
         // 1. 获取用户加入的所有群组
         List<GroupInfo> userGroups = groupService.getUserGroups(userId);
-        
+
         // 2. 提取群组名称列表
         List<String> groupNames = userGroups.stream()
                 .map(GroupInfo::getName)
@@ -61,16 +60,22 @@ public class ScheduleService {
     @Transactional
     public Schedule addSchedule(Long userId, Schedule schedule) {
         schedule.setUserId(userId);
-        
+
         // 确保非空字段有默认值
         if (schedule.getTime() == null) {
             schedule.setTime(LocalTime.of(0, 0, 0));
         }
-        if (schedule.getBelonging() == null || schedule.getBelonging().trim().isEmpty()) {
-            schedule.setBelonging("个人"); // 默认为个人
-        }
-        
+        schedule.setBelonging(normalizeBelonging(schedule.getBelonging()));
+
         return scheduleRepository.save(schedule);
+    }
+
+    // 归属值规范化：null、空串、"默认" 等均视为个人日程
+    private String normalizeBelonging(String belonging) {
+        if (belonging == null || belonging.trim().isEmpty() || "默认".equals(belonging.trim())) {
+            return "个人";
+        }
+        return belonging.trim();
     }
 
     // 更新日程
@@ -83,7 +88,7 @@ public class ScheduleService {
         // 鉴权逻辑
         boolean isCreator = existing.getUserId().equals(userId);
         boolean isInGroup = false;
-        
+
         if (!isCreator) {
             // 检查用户是否在日程所属的群组中
             List<GroupInfo> userGroups = groupService.getUserGroups(userId);
@@ -97,20 +102,18 @@ public class ScheduleService {
         // 执行更新
         existing.setTitle(updatedSchedule.getTitle());
         existing.setDate(updatedSchedule.getDate());
-        
+
         if (updatedSchedule.getTime() == null) {
             existing.setTime(LocalTime.of(0, 0, 0));
         } else {
             existing.setTime(updatedSchedule.getTime());
         }
-        
+
         existing.setAllDay(updatedSchedule.isAllDay());
         existing.setLocation(updatedSchedule.getLocation());
-        
-        if (updatedSchedule.getBelonging() == null || updatedSchedule.getBelonging().trim().isEmpty()) {
-            // 保持原样或设为默认
-        } else {
-            existing.setBelonging(updatedSchedule.getBelonging());
+
+        if (updatedSchedule.getBelonging() != null && !updatedSchedule.getBelonging().trim().isEmpty()) {
+            existing.setBelonging(normalizeBelonging(updatedSchedule.getBelonging()));
         }
 
         existing.setImportant(updatedSchedule.isImportant());
@@ -118,10 +121,10 @@ public class ScheduleService {
         if (updatedSchedule.getOcrText() != null) {
             existing.setOcrText(updatedSchedule.getOcrText());
         }
-        
+
         existing.setAiGenerated(updatedSchedule.isAiGenerated());
         existing.setViewed(updatedSchedule.isViewed());
-        
+
         return scheduleRepository.save(existing);
     }
 
